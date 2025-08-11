@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Tasks</h2>
+<form method="post">
+  <input name="description" placeholder="Task description">
+  <button type="submit">Add Task</button>
+</form>
+<ul>
+{% for task in tasks %}
+<li>
+  <form method="post" action="{{ url_for('toggle_task', task_id=task.id) }}">
+    <button type="submit">{% if task.done %}✓{% else %}✗{% endif %}</button>
+    {{ task.description }}
+  </form>
+</li>
+{% endfor %}
+</ul>
+
+<h2>Focus Timer</h2>
+<div id="timer">25:00</div>
+<button id="start">Start</button>
+<script src="{{ url_for('static', filename='timer.js') }}"></script>
+<form id="sessionForm" method="post" action="{{ url_for('record_session') }}">
+  <input type="hidden" name="duration" id="duration">
+</form>
+{% endblock %}
