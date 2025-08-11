@@ -1,19 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Last 7 Days Focus Time (minutes)</h2>
-<canvas id="chart" width="400" height="200"></canvas>
+<div class="max-w-xl mx-auto bg-slate-800 p-6 rounded-lg shadow">
+  <h2 class="text-xl font-semibold mb-4 text-center">Last 7 Days Focus Time (minutes)</h2>
+  <canvas id="chart"></canvas>
+</div>
 <script>
   const ctx = document.getElementById('chart');
   new Chart(ctx, {
     type: 'bar',
     data: {
       labels: {{ labels|safe }},
-      datasets: [{
-        label: 'Minutes',
-        data: {{ values|safe }},
-        backgroundColor: 'rgba(54, 162, 235, 0.5)'
-      }]
-    }
+      datasets: [{ label: 'Minutes', data: {{ values|safe }}, backgroundColor: 'rgb(16 185 129)' }]
+    },
+    options: { scales: { y: { beginAtZero: true } } }
   });
 </script>
 {% endblock %}
