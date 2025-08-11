@@ -6,6 +6,8 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import Database from 'better-sqlite3'
 import crypto from 'crypto'
+import fs from 'fs'
+import path from 'path'
 
 const app = express()
 app.use(express.json({ limit: '1mb' }))
@@ -17,6 +19,9 @@ app.use(cookieParser())
 // JWT/Cookie-Settings
 // ------------------------------------------------------------------
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_insecure_change_me'
+if (JWT_SECRET === 'dev_insecure_change_me') {
+  console.warn('Warning: using insecure default JWT secret; set JWT_SECRET in production')
+}
 const COOKIE_NAME = 'ff_token'
 const COOKIE_SECURE = String(process.env.COOKIE_SECURE || '') === 'true' // bei HTTPS → true
 const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || undefined
@@ -36,7 +41,9 @@ function issueCookie(res, userId) {
 // ------------------------------------------------------------------
 // DB & Migration
 // ------------------------------------------------------------------
-const db = new Database('/data/focusflow.sqlite')
+const DB_PATH = process.env.DB_PATH || '/data/focusflow.sqlite'
+fs.mkdirSync(path.dirname(DB_PATH), { recursive: true })
+const db = new Database(DB_PATH)
 db.pragma('journal_mode = WAL')
 
 // Users
