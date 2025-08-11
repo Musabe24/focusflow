@@ -1,4 +1,9 @@
+import os
+import sys
+
 import pytest
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from app import app, db, User
 
 @pytest.fixture
@@ -17,3 +22,10 @@ def test_register_login(client):
     assert rv.status_code == 200
     rv = client.post('/login', data={'username': 'alice', 'password': 'pw'}, follow_redirects=True)
     assert b'Tasks' in rv.data
+
+
+def test_stats_page(client):
+    client.post('/register', data={'username': 'bob', 'password': 'pw'}, follow_redirects=True)
+    client.post('/login', data={'username': 'bob', 'password': 'pw'}, follow_redirects=True)
+    rv = client.get('/stats')
+    assert rv.status_code == 200

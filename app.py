@@ -1,8 +1,16 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, render_template, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin, current_user
+from flask_login import (
+    LoginManager,
+    login_user,
+    login_required,
+    logout_user,
+    UserMixin,
+    current_user,
+)
+from sqlalchemy import func
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'changeme'
@@ -80,7 +88,33 @@ def dashboard():
         db.session.add(task)
         db.session.commit()
     tasks = Task.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', tasks=tasks)
+    today = datetime.utcnow().date()
+    total = (
+        db.session.query(func.sum(Session.duration))
+        .filter(Session.user_id == current_user.id, func.date(Session.timestamp) == today)
+        .scalar()
+        or 0
+    )
+    return render_template('dashboard.html', tasks=tasks, total=total // 60)
+
+
+@app.route('/stats')
+@login_required
+def stats():
+    start = datetime.utcnow().date() - timedelta(days=6)
+    start_dt = datetime.combine(start, datetime.min.time())
+    data = {start + timedelta(days=i): 0 for i in range(7)}
+    rows = (
+        db.session.query(func.date(Session.timestamp), func.sum(Session.duration))
+        .filter(Session.user_id == current_user.id, Session.timestamp >= start_dt)
+        .group_by(func.date(Session.timestamp))
+        .all()
+    )
+    for day, total in rows:
+        data[day] = total or 0
+    labels = [d.strftime('%Y-%m-%d') for d in data.keys()]
+    values = [v // 60 for v in data.values()]
+    return render_template('stats.html', labels=labels, values=values)
 
 @app.route('/task/<int:task_id>/toggle', methods=['POST'])
 @login_required

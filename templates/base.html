@@ -3,8 +3,21 @@
 <head>
   <meta charset="utf-8">
   <title>FocusFlow</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  {% block content %}{% endblock %}
+  <nav>
+    {% if current_user.is_authenticated %}
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('stats') }}">Stats</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    {% else %}
+      <a href="{{ url_for('login') }}">Login</a>
+    {% endif %}
+  </nav>
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
 </body>
 </html>
